@@ -1,0 +1,89 @@
+{
+  "TechCrunch": {
+    "rss": [
+      "https://techcrunch.com/feed/",
+      "https://techcrunch.com/category/artificial-intelligence/feed"
+    ]
+  },
+  "TheVerge": {
+    "rss": [
+      "https://www.theverge.com/rss/cryptocurrency/index.xml",
+      "https://www.theverge.com/policy/rss/index.xml",
+      "https://www.theverge.com/rss/youtube/index.xml",
+      "https://www.theverge.com/rss/science/index.xml",
+      "https://www.theverge.com/rss/climate-change/index.xml"
+    ]
+  },
+  "Wired": {
+    "rss": [
+      "https://www.wired.com/feed"
+    ]
+  },
+  "ArsTechnica": {
+    "rss": [
+      "https://feeds.arstechnica.com/arstechnica/index"
+    ]
+  },
+  "Robot News": {
+    "rss": [
+      "https://www.therobotreport.com/feed"
+    ]
+  },
+  "Venturebeat": {
+    "rss": [
+      "https://venturebeat.com/feed/"
+    ]
+  },
+  "MITTechReview": {
+    "rss": [
+      "https://www.technologyreview.com/feed"
+    ]
+  },
+  "ForbesTech": {
+    "rss": [
+      "https://www.forbes.com/innovation/feed"
+    ]
+  },
+  "Medium_TowardsDataScience": {
+    "rss": [
+      "https://towardsdatascience.com/feed"
+    ]
+  },
+  "SciTechDaily": {
+    "rss": [
+      "https://scitechdaily.com/feed/"
+    ]
+  },
+  "ReutersTechnology": {
+    "rss": [
+      "https://www.reutersagency.com/feed/"
+    ]
+  },
+  "HackerNews": {
+    "rss": [
+      "https://hnrss.org/newest",
+      "https://hnrss.org/frontpage",
+      "https://hnrss.org/bestcomments"
+    ]
+  },
+  "BBCTech": {
+    "rss": [
+      "https://feeds.bbci.co.uk/news/technology/rss.xml"
+    ]
+  },
+  "OneUsefulThing": {
+    "rss": [
+      "https://www.oneusefulthing.org/feed"
+    ]
+  },
+  "DataMachina": {
+    "rss": [
+      "https://datamachina.substack.com/feed"
+    ]
+  },
+  "LastWeekinAI": {
+    "rss": [
+      "https://lastweekin.ai/feed"
+    ]
+  }
+}
