@@ -11,7 +11,7 @@ class Article:
 
     def scrape(self):
         try:
-            response = requests.get(self.entry.link)
+            response = requests.get(self.entry.link, timeout=15)
             if response.status_code == 200:
                 self.article = NewsArticle(self.entry.link)
                 self.article.set_html(response.text)

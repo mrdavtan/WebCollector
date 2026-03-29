@@ -1,9 +1,9 @@
 # scraper.py
+import signal
 import time
 import json
 import os
 import random
-import json
 import feedparser
 import uuid
 import requests
@@ -43,7 +43,11 @@ class Scraper:
             for source, content in self.sources.items():
                 print(f"Processing source: {source}")
                 for url in content['rss']:
-                    feed = feedparser.parse(url)
+                    try:
+                        feed = feedparser.parse(url, request_headers={'User-Agent': 'Mozilla/5.0'})
+                    except Exception as e:
+                        print(f"Failed to parse feed {url}: {e}")
+                        continue
                     for entry in feed.entries:
                         if hasattr(entry, 'published'):
                             article_date = dateutil.parser.parse(entry.published)
@@ -103,11 +107,14 @@ class Scraper:
 
     def check_robots_permission(self, url):
         try:
-            rp = robotparser.RobotFileParser()
-            rp.set_url(f"{urlparse(url).scheme}://{urlparse(url).netloc}/robots.txt")
+            rp = RobotFileParser()
+            parsed = re.match(r'(https?://[^/]+)', url)
+            if not parsed:
+                return True
+            rp.set_url(f"{parsed.group(1)}/robots.txt")
             rp.read()
             return rp.can_fetch("*", url)
-        except:
+        except Exception:
             return True
 
     def save_article_as_json(self, article, directory):
