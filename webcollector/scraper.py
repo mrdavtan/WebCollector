@@ -2,6 +2,7 @@
 import time
 import json
 import os
+import random
 import json
 import feedparser
 import uuid
@@ -22,11 +23,17 @@ class Scraper:
         self.articles_dir = self.load_config()
 
     def load_config(self):
-        config_file = 'config.json'
+        config_file = os.path.join(os.path.dirname(__file__), 'config.json')
         with open(config_file, 'r') as file:
             config = json.load(file)
         return config['articles_dir']
 
+
+#    def load_config(self):
+#        config_file = 'config.json'
+#        with open(config_file, 'r') as file:
+#            config = json.load(file)
+#        return config['articles_dir']
 
     def scrape(self):
         os.makedirs(self.articles_dir, exist_ok=True)
@@ -41,6 +48,7 @@ class Scraper:
                         if hasattr(entry, 'published'):
                             article_date = dateutil.parser.parse(entry.published)
                             if article_date.strftime('%Y%m%d') == str(self.specific_date):
+                                time.sleep(random.uniform(1, 3))  # Random delay
                                 article_details = {
                                     'source': source,
                                     'url': getattr(entry, 'link', 'No URL Available'),
@@ -55,36 +63,43 @@ class Scraper:
                                     'robots_permission': self.check_robots_permission(entry.link)
                                 }
 
-
                                 try:
-                                    headers = {'User-Agent': 'Mozilla/5.0'}
-                                    response = requests.get(entry.link, headers=headers)
+                                    headers = {
+                                        'User-Agent': random.choice([
+                                            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36',
+                                            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0',
+                                            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36',
+                                            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36'
+                                        ])
+                                    }
+                                    response = requests.get(entry.link, headers=headers, timeout=10)  # 10 seconds timeout
                                     if response.status_code == 200:
-                                        # Corrected instantiation of the custom Article class
-                                        article = Article(entry=entry, source=source)  # Corrected line
-                                        article.scrape()  # Assuming your custom Article class has a method .scrape() for processing
+                                        article = Article(entry=entry, source=source)  # Correct instantiation
+                                        article.scrape()  # Processing the article
 
                                         article_details.update({
-                                            'body': article.article.text if article.article else '',
-                                            'summary': article.article.summary if article.article else '',
-                                            'keywords': article.article.keywords if article.article else '',
-                                            'image_url': article.article.top_image if article.article else ''
+                                            'body': article.article.text if hasattr(article, 'article') else '',
+                                            'summary': article.article.summary if hasattr(article, 'article') else '',
+                                            'keywords': article.article.keywords if hasattr(article, 'article') else '',
+                                            'image_url': article.article.top_image if hasattr(article, 'article') else ''
                                         })
                                     else:
                                         print(f"Request failed with status code: {response.status_code}")
+                                except requests.Timeout:
+                                    print(f"Request for {entry.link} timed out.")
                                 except Exception as e:
                                     print(e)
                                     print('continuing...')
 
-
                                 articles_list.append(article_details)
-                                self.save_article_as_json(article_details, self.articles_dir)
+                                self.save_article_as_json(article_details, self.articles_dir)  # Assuming implementation exists
                                 print(f"Saved article: {article_details['title']}")
-                                time.sleep(1)
+                                time.sleep(random.uniform(1, 3))  # Another random delay
 
             return articles_list
         except Exception as e:
             raise Exception(f'Error in "Scraper.scrape()": {e}')
+
 
     def check_robots_permission(self, url):
         try:

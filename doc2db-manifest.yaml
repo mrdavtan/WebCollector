@@ -1,0 +1,18 @@
+app_id: webcollector
+name: Webcollector
+version: 1.0.0
+type: standalone
+ui:
+  panels:
+  - id: webcollector-dashboard
+    label: Webcollector Dashboard
+    icon: Box
+    entrypoint: web_ui/src/os_apps/WebCollectorPanel.tsx
+infrastructure:
+  compute:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1000m
+      memory: 2Gi

@@ -1,2 +1,6 @@
-./webcollector/articles
-./webcollector/config.json
+webcollector/articles/
+webcollector/config.json
+webcollector/logs/
+.venv/
+__pycache__/
+*.pyc
