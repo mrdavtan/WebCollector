@@ -29,7 +29,11 @@ if __name__ == "__main__":
     scraper = Scraper(rss_feeds, specific_date)
     articles = scraper.scrape()
 
-    df = write_dataframe(articles)
-    df = clean_dataframe(df)
-    df = clean_articles(df)
-
+    # Post-processing should never crash article collection.
+    try:
+        df = write_dataframe(articles)
+        df = clean_dataframe(df)
+        df = clean_articles(df)
+        print(f"INFO: Post-processing complete for {len(df)} records.")
+    except Exception as exc:
+        print(f'WARN: post-processing failed: {exc}')

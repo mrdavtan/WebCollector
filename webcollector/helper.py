@@ -54,12 +54,20 @@ def remove_stopwords(text):
 
 def clean_articles(df):
     try:
+        if df is None or df.empty:
+            return df
+
+        # Guard against sparse feed payloads that omit expected keys.
+        for col in ["title", "source", "body", "url"]:
+            if col not in df.columns:
+                df[col] = ""
+
         df = (df.drop_duplicates(subset=["title", "source"])).sort_index()
         df = (df.drop_duplicates(subset=["body"])).sort_index()
         df = (df.drop_duplicates(subset=["url"])).sort_index()
         df = df.reset_index(drop=True)
 
-        df['clean_body'] = df['body'].str.lower()
+        df['clean_body'] = df['body'].fillna("").astype(str).str.lower()
 
         df['clean_body'] = [remove_stopwords(x).translate(str.maketrans('', '', string.punctuation)).translate(str.maketrans('', '', string.digits)) for x in df['clean_body']]
 

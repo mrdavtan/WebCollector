@@ -13,6 +13,9 @@ from article import Article
 import re
 from urllib.robotparser import RobotFileParser
 
+MIN_SCRAPE_DELAY_SECONDS = float(os.getenv("WEBCOLLECTOR_MIN_DELAY_SECONDS", "0.05"))
+MAX_SCRAPE_DELAY_SECONDS = float(os.getenv("WEBCOLLECTOR_MAX_DELAY_SECONDS", "0.25"))
+
 
 class Scraper:
     def __init__(self, sources, specific_date):
@@ -52,7 +55,7 @@ class Scraper:
                         if hasattr(entry, 'published'):
                             article_date = dateutil.parser.parse(entry.published)
                             if article_date.strftime('%Y%m%d') == str(self.specific_date):
-                                time.sleep(random.uniform(1, 3))  # Random delay
+                                self.sleep_with_jitter()
                                 article_details = {
                                     'source': source,
                                     'url': getattr(entry, 'link', 'No URL Available'),
@@ -98,7 +101,7 @@ class Scraper:
                                 articles_list.append(article_details)
                                 self.save_article_as_json(article_details, self.articles_dir)  # Assuming implementation exists
                                 print(f"Saved article: {article_details['title']}")
-                                time.sleep(random.uniform(1, 3))  # Another random delay
+                                self.sleep_with_jitter()
 
             return articles_list
         except Exception as e:
@@ -149,3 +152,10 @@ class Scraper:
         sanitized_title = re.sub(r'[\\/*?:"<>|]', '_', title)
         sanitized_title = re.sub(r'\s+', '_', sanitized_title)[:50]
         return sanitized_title
+
+    def sleep_with_jitter(self):
+        low = min(MIN_SCRAPE_DELAY_SECONDS, MAX_SCRAPE_DELAY_SECONDS)
+        high = max(MIN_SCRAPE_DELAY_SECONDS, MAX_SCRAPE_DELAY_SECONDS)
+        if high <= 0:
+            return
+        time.sleep(random.uniform(low, high))
