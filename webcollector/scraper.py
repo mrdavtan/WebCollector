@@ -7,7 +7,7 @@ import random
 import feedparser
 import uuid
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import dateutil.parser
 from article import Article
 import re
@@ -15,6 +15,7 @@ from urllib.robotparser import RobotFileParser
 
 MIN_SCRAPE_DELAY_SECONDS = float(os.getenv("WEBCOLLECTOR_MIN_DELAY_SECONDS", "0.05"))
 MAX_SCRAPE_DELAY_SECONDS = float(os.getenv("WEBCOLLECTOR_MAX_DELAY_SECONDS", "0.25"))
+LOOKBACK_HOURS = int(os.getenv("WEBCOLLECTOR_LOOKBACK_HOURS", "0"))
 
 
 class Scraper:
@@ -24,6 +25,7 @@ class Scraper:
         self.load_config()
         self.url_to_uuid = {}
         self.articles_dir = self.load_config()
+        self.lookback_hours = max(0, LOOKBACK_HOURS)
 
     def load_config(self):
         config_file = os.path.join(os.path.dirname(__file__), 'config.json')
@@ -56,7 +58,7 @@ class Scraper:
                     for entry in feed.entries:
                         if hasattr(entry, 'published'):
                             article_date = dateutil.parser.parse(entry.published)
-                            if article_date.strftime('%Y%m%d') == str(self.specific_date):
+                            if self.should_ingest_article(article_date):
                                 entry_url = getattr(entry, 'link', '')
                                 if entry_url and entry_url in seen_urls:
                                     print(f"Skipping already saved URL: {entry_url}")
@@ -114,6 +116,20 @@ class Scraper:
             return articles_list
         except Exception as e:
             raise Exception(f'Error in "Scraper.scrape()": {e}')
+
+    def should_ingest_article(self, article_date):
+        if not isinstance(article_date, datetime):
+            return False
+        if article_date.tzinfo is None:
+            article_utc = article_date.replace(tzinfo=timezone.utc)
+        else:
+            article_utc = article_date.astimezone(timezone.utc)
+
+        if self.lookback_hours > 0:
+            cutoff = datetime.now(timezone.utc) - timedelta(hours=self.lookback_hours)
+            return article_utc >= cutoff
+
+        return article_utc.strftime('%Y%m%d') == str(self.specific_date)
 
 
     def check_robots_permission(self, url):
