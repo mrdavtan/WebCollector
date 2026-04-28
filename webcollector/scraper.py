@@ -41,6 +41,8 @@ class Scraper:
     def scrape(self):
         os.makedirs(self.articles_dir, exist_ok=True)
         articles_list = []
+        seen_urls = self.load_existing_urls_for_date()
+        print(f"Found {len(seen_urls)} existing URLs for date {self.specific_date}")
 
         try:
             for source, content in self.sources.items():
@@ -55,10 +57,14 @@ class Scraper:
                         if hasattr(entry, 'published'):
                             article_date = dateutil.parser.parse(entry.published)
                             if article_date.strftime('%Y%m%d') == str(self.specific_date):
+                                entry_url = getattr(entry, 'link', '')
+                                if entry_url and entry_url in seen_urls:
+                                    print(f"Skipping already saved URL: {entry_url}")
+                                    continue
                                 self.sleep_with_jitter()
                                 article_details = {
                                     'source': source,
-                                    'url': getattr(entry, 'link', 'No URL Available'),
+                                    'url': entry_url or 'No URL Available',
                                     'title': getattr(entry, 'title', 'No Title Available'),
                                     'date': article_date.strftime('%Y-%m-%d'),
                                     'time': article_date.strftime('%H:%M:%S %Z'),
@@ -100,6 +106,8 @@ class Scraper:
 
                                 articles_list.append(article_details)
                                 self.save_article_as_json(article_details, self.articles_dir)  # Assuming implementation exists
+                                if article_details['url'] and article_details['url'] != 'No URL Available':
+                                    seen_urls.add(article_details['url'])
                                 print(f"Saved article: {article_details['title']}")
                                 self.sleep_with_jitter()
 
@@ -159,3 +167,24 @@ class Scraper:
         if high <= 0:
             return
         time.sleep(random.uniform(low, high))
+
+    def load_existing_urls_for_date(self):
+        urls = set()
+        date_suffix = str(self.specific_date)
+        if not os.path.isdir(self.articles_dir):
+            return urls
+        for filename in os.listdir(self.articles_dir):
+            if not filename.endswith('.json'):
+                continue
+            if not filename.endswith(f"_{date_suffix}.json"):
+                continue
+            path = os.path.join(self.articles_dir, filename)
+            try:
+                with open(path, 'r', encoding='utf-8') as fh:
+                    payload = json.load(fh)
+                url = payload.get('url')
+                if isinstance(url, str) and url and url != 'No URL Available':
+                    urls.add(url)
+            except Exception:
+                continue
+        return urls
